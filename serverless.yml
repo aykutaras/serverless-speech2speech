@@ -1,0 +1,194 @@
+service:
+  name: serverless-speech2speech
+
+plugins:
+  - serverless-webpack
+  - serverless-plugin-tracing
+  - serverless-offline
+  - serverless-dynamodb-local
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  region: eu-west-1
+  memorySize: 128
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:PutObject"
+        - "s3:PutObjectAcl"
+      Resource:
+        Fn::Join:
+          - ""
+          -
+            - "arn:aws:s3:::"
+            - Ref : VoiceBucket
+            - "/*"
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:DeleteItem"
+        - "dynamodb:GetItem"
+        - "dynamodb:PutItem"
+        - "dynamodb:Scan"
+        - "dynamodb:UpdateItem"
+        - "dynamodb:GetRecords"
+        - "dynamodb:GetShardIterator"
+        - "dynamodb:DescribeStream"
+        - "dynamodb:ListStreams"
+      Resource:
+        - 'Fn::Join':
+          - ':'
+          -
+            - 'arn:aws:dynamodb'
+            - Ref: 'AWS::Region'
+            - Ref: 'AWS::AccountId'
+            - 'Fn::Join':
+              - ""
+              - 
+                - 'table/'
+                - Ref: SpeechTable
+    - Effect: "Allow"
+      Action:
+        - "polly:*"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "translate:TranslateText"
+      Resource: "*"
+
+functions:
+  getSpeech:
+    handler: src/handlers/queries/GetSpeechHandler.main
+    description: Gets speeches from dynamodb by id
+    events:
+      - http:
+          method: get
+          path: /
+          integration: lambda
+          cors: true
+          request:
+            passThrough: WHEN_NO_MATCH
+            parameters:
+              querystrings:
+                speechId: true
+            template:
+              application/json: '{ "speechId" : "$input.params(''speechId'')" }'
+          response:
+            headers:
+              Content-Type: "'application/json'"
+    environment:
+      tableName:
+        Ref: SpeechTable
+      region: ${self:provider.region}
+  getAllSpeeches:
+    handler: src/handlers/queries/GetAllSpeechesHandler.main
+    description: Get all speeches from dynamodb
+    events:
+      - http:
+          method: get
+          path: /all
+          integration: lambda
+          cors: true
+          request:
+            passThrough: WHEN_NO_MATCH
+          response:
+            headers:
+              Content-Type: "'application/json'"
+    environment:
+      tableName:
+        Ref: SpeechTable
+      region: ${self:provider.region}
+  newSpeech:
+    handler: src/handlers/commands/NewSpeechHandler.main
+    description: Adds new speeches to dynamodb
+    events:
+      - http:
+          method: post
+          path: /
+          integration: lambda
+          cors: true
+          request:
+            passThrough: WHEN_NO_MATCH
+            template:
+              application/json: ''
+          response:
+            headers:
+              Content-Type: "'application/json'"
+    environment:
+      tableName:
+        Ref: SpeechTable
+      region: ${self:provider.region}
+  translateSpeech:
+    handler: src/handlers/commands/TranslateSpeechHandler.main
+    description: Translate speeches
+    events:
+      - http:
+          method: post
+          path: /translate
+          integration: lambda
+          cors: true
+          request:
+            passThrough: WHEN_NO_MATCH
+            template:
+              application/json: ''
+          response:
+            headers:
+              Content-Type: "'application/json'"
+    environment:
+      region: ${self:provider.region}
+  convertSpeech:
+    handler: src/handlers/commands/ConvertSpeechHandler.main
+    description: Converts speech to mp3 voices through Polly
+    events:
+      - stream:
+          type: dynamodb
+          batchSize: 1
+          arn:
+            Fn::GetAtt:
+              - SpeechTable
+              - StreamArn
+    environment:
+      tableName:
+        Ref: SpeechTable
+      voiceBucket:
+        Ref: VoiceBucket
+      region: ${self:provider.region}
+
+resources:
+  Resources:
+    SpeechTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    StaticBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        AccessControl: PublicRead
+        WebsiteConfiguration:
+          IndexDocument: index.html
+          ErrorDocument: index.html
+    VoiceBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        AccessControl: PublicRead
+
+custom:
+  webpackIncludeModules: true
+  dynamodb:
+    start:
+      port: 9000
+      inMemory: true
+      migrate: true
+    migration:
+      dir: test/migrations

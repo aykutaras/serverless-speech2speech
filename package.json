@@ -1,0 +1,35 @@
+{
+  "name": "serverless-speech2speech",
+  "version": "1.0.0",
+  "description": "Serverless translater with aws-polly, transcribe and translate. Written with Typescript.",
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha -r ts-node/register \"test/**/*.ts\""
+  },
+  "devDependencies": {
+    "@types/async": "^2.0.31",
+    "@types/aws-lambda": "0.0.22",
+    "@types/chai": "^4.1.2",
+    "@types/mocha": "^2.2.48",
+    "@types/node": "^8.0.57",
+    "aws-sdk": "^2.150.0",
+    "chai": "^4.1.2",
+    "mocha": "^5.0.1",
+    "serverless": "^1.27.0",
+    "serverless-dynamodb-local": "^0.2.27",
+    "serverless-offline": "^3.24.0",
+    "serverless-plugin-tracing": "^2.0.0",
+    "serverless-webpack": "^4.0.0",
+    "ts-loader": "^2.3.7",
+    "typescript": "^2.5.2",
+    "webpack": "^3.8.1",
+    "webpack-node-externals": "^1.6.0"
+  },
+  "dependencies": {
+    "aws-xray-sdk-core": "^1.2.0",
+    "inversify": "^4.13.0",
+    "reflect-metadata": "^0.1.12",
+    "uuid": "^3.2.1"
+  },
+  "author": "Aykut Aras",
+  "license": "MIT"
+}
