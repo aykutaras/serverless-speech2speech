@@ -28,7 +28,7 @@ export class S3Store implements SpeechStore {
     async upload(entity: VoiceEntity): Promise<string> {
         const params = {
             Bucket: this.options.voiceBucket,
-            Key: entity.speechId + ".mp3",
+            Key: entity.speechFileName,
             Body: entity.voiceStream,
             ACL: 'public-read'
         };

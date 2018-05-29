@@ -4,6 +4,8 @@ import {Translator} from "domain/Translator";
 import {TranslationEntity} from "domain/TranslationEntity";
 
 export const main = async (event, context, callback) => {
+    // Get data from dynamodb stream
+
     const entity: TranslationEntity = {
         id: uuid(),
         sourceLanguageCode: event.sourceLanguageCode,
