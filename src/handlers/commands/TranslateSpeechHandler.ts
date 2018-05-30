@@ -1,27 +1,64 @@
-import * as uuid from "uuid/v4";
 import {AwsTranslate} from "infrastructure/AwsTranslate";
 import {Translator} from "domain/Translator";
-import {TranslationEntity} from "domain/TranslationEntity";
+import {SpeechEntity} from "domain/SpeechEntity";
+import {DynamoDBRepository} from "../../infrastructure/DynamoDBRepository";
+import {SpeechRepository} from "../../domain/SpeechRepository";
 
 export const main = async (event, context, callback) => {
-    // Get data from dynamodb stream
+    const speechRecord = getNewRecordFromEvent(event);
+    if (speechRecord === null) {
+        callback(null, {success: false});
+    }
 
-    const entity: TranslationEntity = {
-        id: uuid(),
-        sourceLanguageCode: event.sourceLanguageCode,
-        targetLanguageCode: event.targetLanguageCode,
-        sourceText: event.sourceText,
-        translatedText: null
-    };
+    if (speechRecord.translatedSpeech.text !== null) {
+        callback(null, {translatedText: speechRecord.translatedSpeech.text});
+    }
 
     const translator: Translator = new AwsTranslate({ region: process.env.region });
-    const translationResponse = await translator.translate(entity);
+    const repository: SpeechRepository = new DynamoDBRepository({
+        region: process.env.region,
+        tableName: process.env.tableName
+    });
 
-    const response = {
-        "statusCode": 200,
-        "body": { translatedText: translationResponse.translatedText },
-        "isBase64Encoded": false
-    };
+    const translationResponse = await translator.translate(speechRecord);
+    speechRecord.translatedSpeech.text = translationResponse;
 
-    callback(null, response);
+    await repository.update(speechRecord);
+
+    callback(null, {translatedText: translationResponse});
 };
+
+function getNewRecordFromEvent(event): SpeechEntity {
+    const record = event.Records[0];
+    if (record.eventName !== "MODIFY") {
+        return null;
+    }
+
+    const newSpeech = record.dynamodb.NewImage;
+
+    if (newSpeech.translatedSpeech.text.S !== null) {
+        return null; // Already translated move on
+    }
+
+    return {
+        id: newSpeech.id.S,
+        sourceSpeech: {
+            voice: {
+                voiceFileName: newSpeech.sourceSpeech.voice.voiceFileName.S,
+                vocalist: newSpeech.sourceSpeech.voice.vocalist.S,
+                voiceStream: null
+            },
+            text: newSpeech.sourceSpeech.text.S,
+            language: newSpeech.sourceSpeech.language.S
+        },
+        translatedSpeech: {
+            voice: {
+                voiceFileName: newSpeech.translatedSpeech.voice.voiceFileName.S,
+                vocalist: newSpeech.translatedSpeech.voice.vocalist.S,
+                voiceStream: null
+            },
+            text: newSpeech.translatedSpeech.text.S,
+            language: newSpeech.translatedSpeech.language.S
+        }
+    };
+}

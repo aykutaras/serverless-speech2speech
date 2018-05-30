@@ -31,17 +31,37 @@ export const main = async (event, context, callback) => {
 };
 
 function getNewRecordFromEvent(event): SpeechEntity {
-    return null;
-    // const record = event.Records[0];
-    // if (record.eventName !== "INSERT") { // TODO this needs to be update
-    //     return null;
-    // }
-    //
-    // const newSpeech = record.dynamodb.NewImage;
-    // return {
-    //     id: newSpeech.id.S,
-    //     vocalist: newSpeech.vocalist.S,
-    //     speechText: newSpeech.speechText.S,
-    //     speechUrl: null
-    // };
+    const record = event.Records[0];
+    if (record.eventName !== "MODIFY") {
+        return null;
+    }
+
+    const newSpeech = record.dynamodb.NewImage;
+
+    if (newSpeech.translatedSpeech.text.S === null || newSpeech.translatedSpeech.voice.voiceFileName.S !== null) {
+        return null; // Source text not translated yet or already synt, we can ignore message
+    }
+
+    return {
+        id: newSpeech.id.S,
+        sourceSpeech: {
+            voice: {
+                voiceFileName: newSpeech.sourceSpeech.voice.voiceFileName.S,
+                vocalist: newSpeech.sourceSpeech.voice.vocalist.S,
+                voiceStream: null
+            },
+            text: newSpeech.sourceSpeech.text.S,
+            language: newSpeech.sourceSpeech.language.S
+        },
+        translatedSpeech: {
+            voice: {
+                voiceFileName: newSpeech.translatedSpeech.voice.voiceFileName.S,
+                vocalist: newSpeech.translatedSpeech.voice.vocalist.S,
+                voiceStream: null
+            },
+            text: newSpeech.translatedSpeech.text.S,
+            language: newSpeech.translatedSpeech.language.S
+        }
+    };
 }
+

@@ -67,12 +67,11 @@ export class DynamoDBRepository implements SpeechRepository {
             Key: {
                 "id": entity.id
             },
-            UpdateExpression: "set #u = :u",
-            ExpressionAttributeNames: {
-                "#u": "sourceSpeech.text"
-            },
+            UpdateExpression: "set sourceSpeech.text = :ss, translatedSpeech.voice.voiceFileName = :vfn, translatedSpeech.text = :t",
             ExpressionAttributeValues: {
-                ":u": entity.sourceSpeech.text
+                ":ss": entity.sourceSpeech.text,
+                ":vfn": entity.translatedSpeech.voice.voiceFileName,
+                ":t": entity.translatedSpeech.text
             },
             ReturnValues: "UPDATED_NEW"
         };

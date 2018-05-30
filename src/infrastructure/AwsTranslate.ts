@@ -1,7 +1,7 @@
 import * as AWS from "aws-sdk"
 
 import {Translator} from "domain/Translator";
-import {TranslationEntity} from "domain/TranslationEntity";
+import {SpeechEntity} from "domain/SpeechEntity";
 
 export class AwsTranslate implements Translator {
     private readonly translator: AWS.Translate;
@@ -10,16 +10,15 @@ export class AwsTranslate implements Translator {
         this.translator = new AWS.Translate(options)
     }
 
-    async translate(entity: TranslationEntity): Promise<TranslationEntity> {
+    async translate(entity: SpeechEntity): Promise<string> {
         const params: AWS.Translate.TranslateTextRequest = {
-            SourceLanguageCode: entity.sourceLanguageCode,
-            TargetLanguageCode: entity.targetLanguageCode,
-            Text: entity.sourceText
+            SourceLanguageCode: entity.sourceSpeech.language.substr(0, 2),
+            TargetLanguageCode: entity.translatedSpeech.language.substr(0, 2),
+            Text: entity.sourceSpeech.text
         };
 
         const translateResponse: AWS.Translate.TranslateTextResponse = await this.translator.translateText(params).promise();
 
-        entity.translatedText = translateResponse.TranslatedText;
-        return entity;
+        return translateResponse.TranslatedText;
     }
 }

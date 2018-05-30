@@ -1,5 +1,5 @@
-import {TranslationEntity} from "./TranslationEntity";
+import {SpeechEntity} from "./SpeechEntity";
 
 export interface Translator {
-    translate(entity: TranslationEntity): Promise<TranslationEntity>
+    translate(entity: SpeechEntity): Promise<string>
 }

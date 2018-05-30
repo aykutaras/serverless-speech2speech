@@ -19,24 +19,38 @@ export const main = async (event, context, callback) => {
 
     const speechId = uuid();
     const sourceVoice: VoiceValueObject = {
-        vocalist: event.vocalist,
-        voiceFileName: `source.${event.language}.${speechId}.wav`,
-        voiceStream: event.voiceStream
+        vocalist: null,
+        voiceFileName: `source.${event.sourceSpeech.language}.${speechId}.wav`,
+        voiceStream: event.sourceSpeech.voice.voiceStream
     };
 
-    await store.upload(sourceVoice);
+    const uploadPromise = store.upload(sourceVoice);
+
+    const translatedVoice: VoiceValueObject = {
+        vocalist: event.translatedSpeech.voice.vocalist,
+        voiceFileName: null,
+        voiceStream: null
+    };
 
     const sourceSpeech: SpeechValueObject = {
-        language: event.language,
+        language: event.sourceSpeech.language,
         text: null,
         voice: sourceVoice
     };
+
+    const translatedSpeech: SpeechValueObject = {
+        language: event.translatedSpeech.language,
+        text: null,
+        voice: translatedVoice
+    };
+
     const speechEntity: SpeechEntity = {
         id: speechId,
         sourceSpeech: sourceSpeech,
-        translatedSpeech: null
+        translatedSpeech: translatedSpeech
     };
 
+    await uploadPromise;
     const storeResponse = await repository.create(speechEntity);
     const response = {
         "statusCode": 200,
