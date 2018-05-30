@@ -1,8 +1,8 @@
 import {AwsTranslate} from "infrastructure/AwsTranslate";
 import {Translator} from "domain/Translator";
 import {SpeechEntity} from "domain/SpeechEntity";
-import {DynamoDBRepository} from "../../infrastructure/DynamoDBRepository";
-import {SpeechRepository} from "../../domain/SpeechRepository";
+import {DynamoDBRepository} from "infrastructure/DynamoDBRepository";
+import {SpeechRepository} from "domain/SpeechRepository";
 
 export const main = async (event, context, callback) => {
     const speechRecord = getNewRecordFromEvent(event);

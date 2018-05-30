@@ -11,8 +11,9 @@ export class AwsTranslate implements Translator {
     }
 
     async translate(entity: SpeechEntity): Promise<string> {
+        const sourceLanguage = entity.sourceSpeech.language;
         const params: AWS.Translate.TranslateTextRequest = {
-            SourceLanguageCode: entity.sourceSpeech.language.substr(0, 2),
+            SourceLanguageCode: sourceLanguage === 'auto' ? sourceLanguage : sourceLanguage.substr(0, 2),
             TargetLanguageCode: entity.translatedSpeech.language.substr(0, 2),
             Text: entity.sourceSpeech.text
         };

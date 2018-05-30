@@ -11,29 +11,41 @@ describe("PollyConverter", function() {
 
     it("should convert text to speech with given vocalist and return a Buffer", async () => {
         const entity: SpeechEntity = {
-            id: "123456",
-            vocalist: "Ivy",
-            speechText: "Hello World!",
-            speechUrl: null
+            id: null,
+            sourceSpeech: null,
+            translatedSpeech: {
+                text: "Hello World!",
+                language: null,
+                voice: {
+                    voiceFileName: null,
+                    voiceStream: null,
+                    vocalist: "Ivy"
+                }
+            }
         };
 
-        const voiceEntity = await converter.convert(entity);
-        voiceEntity.speechId.should.equal(entity.id);
-        voiceEntity.voiceStream.length.should.greaterThan(0);
+        const voiceStream = await converter.convert(entity);
+        voiceStream.length.should.greaterThan(0);
     });
 
     it("should throw ValidationException for invalid vocalist", async () => {
         const entity: SpeechEntity = {
-            id: "123456",
-            vocalist: "Invalid",
-            speechText: "Hello World!",
-            speechUrl: null
+            id: null,
+            sourceSpeech: null,
+            translatedSpeech: {
+                text: "Hello World!",
+                language: null,
+                voice: {
+                    voiceFileName: null,
+                    voiceStream: null,
+                    vocalist: "Invalid"
+                }
+            }
         };
 
         try {
-            const voiceEntity = await converter.convert(entity);
-            voiceEntity.speechId.should.equal(entity.id);
-            voiceEntity.voiceStream.length.should.greaterThan(0);
+            const voiceStream = await converter.convert(entity);
+            voiceStream.length.should.greaterThan(0);
         } catch (e) {
             e.code.should.equal("ValidationException");
         }

@@ -1,4 +1,5 @@
 import "mocha"
+import * as uuid from "uuid/v4";
 import * as chai from "chai";
 import {DynamoDBRepository} from "../../src/infrastructure/DynamoDBRepository";
 import {SpeechEntity} from "../../src/domain/SpeechEntity";
@@ -16,29 +17,43 @@ describe("DynamoDBRepository", function() {
 
     it("should create a new speech entity to database", async () => {
         const entity: SpeechEntity = {
-            id: null,
-            speechText: "Hello World!",
-            vocalist: "Ivy",
-            speechUrl: null
+            id: uuid(),
+            sourceSpeech: {
+                text: "Hello World!",
+                language: "en-US",
+                voice: {
+                    voiceFileName: null,
+                    voiceStream: null,
+                    vocalist: "Ivy"
+                }
+            },
+            translatedSpeech: null
         };
 
         const createResponse = await repository.create(entity);
         createResponse.id.should.not.null;
-        createResponse.speechText.should.equal(entity.speechText);
+        createResponse.sourceSpeech.text.should.equal(entity.sourceSpeech.text);
     });
 
     it("should get speech entity by its id", async () => {
         const entity: SpeechEntity = {
-            id: null,
-            speechText: "Hello World!",
-            vocalist: "Ivy",
-            speechUrl: null
+            id: uuid(),
+            sourceSpeech: {
+                text: "Hello World!",
+                language: "en-US",
+                voice: {
+                    voiceFileName: null,
+                    voiceStream: null,
+                    vocalist: "Ivy"
+                }
+            },
+            translatedSpeech: null
         };
 
         const createResponse = await repository.create(entity);
         const getResponse = await repository.get(createResponse.id);
         getResponse.id.should.equal(createResponse.id);
-        getResponse.speechText.should.equal(createResponse.speechText);
+        getResponse.sourceSpeech.text.should.equal(createResponse.sourceSpeech.text);
     });
 
     it("should get all speech entities from table", async () => {
@@ -48,17 +63,25 @@ describe("DynamoDBRepository", function() {
 
     it("should update speech entity by its id", async () => {
         const entity: SpeechEntity = {
-            id: null,
-            speechText: "Hello World!",
-            vocalist: "Ivy",
-            speechUrl: null
+            id: uuid(),
+            sourceSpeech: {
+                text: "Hello World!",
+                language: "en-US",
+                voice: {
+                    voiceFileName: null,
+                    voiceStream: null,
+                    vocalist: "Ivy"
+                }
+            },
+            translatedSpeech: null
         };
 
         const createResponse = await repository.create(entity);
+        const getResponse = await repository.get(createResponse.id);
 
-        createResponse.speechUrl = "https://example.com/";
-        const updateResponse = await repository.update(createResponse);
+        getResponse.translatedSpeech.text = "Helloo!";
+        const updateResponse = await repository.update(getResponse);
         updateResponse.id.should.equal(entity.id);
-        updateResponse.speechText.should.equal(entity.speechText);
+        updateResponse.translatedSpeech.text.should.equal("Helloo!");
     });
 });

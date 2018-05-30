@@ -34,24 +34,27 @@ export class DynamoDBRepository implements SpeechRepository {
     }
 
     async create(entity: SpeechEntity): Promise<SpeechEntity> {
+
+        const sourceSpeech = entity.sourceSpeech;
+        const translatedSpeech = entity.translatedSpeech;
         const params = {
             TableName: this.tableName,
             Item: {
                 "id": entity.id,
                 "sourceSpeech": {
-                    "language": entity.sourceSpeech.language,
-                    "text": entity.sourceSpeech.text,
+                    "language": sourceSpeech && sourceSpeech.language,
+                    "text": sourceSpeech && sourceSpeech.text,
                     "voice": {
-                        "vocalist": entity.sourceSpeech.voice.vocalist,
-                        "voiceFileName": entity.sourceSpeech.voice.voiceFileName
+                        "vocalist": sourceSpeech && sourceSpeech.voice.vocalist,
+                        "voiceFileName": sourceSpeech && sourceSpeech.voice.voiceFileName
                     }
                 },
                 "translatedSpeech": {
-                    "language": entity.translatedSpeech.language,
-                    "text": entity.translatedSpeech.text,
+                    "language": translatedSpeech && translatedSpeech.language,
+                    "text": translatedSpeech && translatedSpeech.text,
                     "voice": {
-                        "vocalist": entity.translatedSpeech.voice.vocalist,
-                        "voiceFileName": entity.translatedSpeech.voice.voiceFileName
+                        "vocalist": translatedSpeech && translatedSpeech.voice.vocalist,
+                        "voiceFileName": translatedSpeech && translatedSpeech.voice.voiceFileName
                     }
                 }
             }
@@ -67,11 +70,10 @@ export class DynamoDBRepository implements SpeechRepository {
             Key: {
                 "id": entity.id
             },
-            UpdateExpression: "set sourceSpeech.text = :ss, translatedSpeech.voice.voiceFileName = :vfn, translatedSpeech.text = :t",
+            UpdateExpression: "set sourceSpeech = :ss, translatedSpeech = :t",
             ExpressionAttributeValues: {
-                ":ss": entity.sourceSpeech.text,
-                ":vfn": entity.translatedSpeech.voice.voiceFileName,
-                ":t": entity.translatedSpeech.text
+                ":ss": entity.sourceSpeech,
+                ":t": entity.translatedSpeech
             },
             ReturnValues: "UPDATED_NEW"
         };

@@ -11,14 +11,14 @@ export class S3Store implements VoiceStore {
         this.s3Client = new AWS.S3(this.options);
     }
 
-    async download<T>(voiceFileName: string): Promise<T> {
+    async download(voiceFileName: string): Promise<Buffer> {
         const params = {
             Bucket: this.options.voiceBucket,
             Key: voiceFileName,
         };
 
         const getResponse = await this.s3Client.getObject(params).promise();
-        return <T>getResponse.Body
+        return <Buffer>getResponse.Body
     }
 
     async upload(entity: VoiceValueObject): Promise<void> {
