@@ -1,4 +1,4 @@
 export interface StateMachine {
-    start(speechId: string): Promise<boolean>
-    stop(speechId: string): Promise<boolean>
+    start(speechId: string): Promise<string>
+    stop(speechId: string): Promise<void>
 }

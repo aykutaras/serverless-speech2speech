@@ -1,19 +1,17 @@
 export interface SpeechEntity {
     id: string
+    sourceSpeech: SpeechValueObject
+    translatedSpeech: SpeechValueObject
+}
+
+export interface SpeechValueObject {
     language: string
+    text: string
+    voice: VoiceValueObject
+}
+
+export interface VoiceValueObject {
     vocalist: string
-    sourceSpeechText: string
-    translatedSpeechText: string
-    sourceSpeechUrl: string
-    translatedSpeechUrl: string
-}
-
-export interface VoiceEntity {
-    speechFileName: string
+    voiceFileName: string
     voiceStream: Buffer
-}
-
-export enum TranscriptLanguage {
-    en = 'en-US',
-    es = 'es-US'
 }

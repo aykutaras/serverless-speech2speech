@@ -3,36 +3,27 @@ import {StateMachine} from "domain/StateMachine";
 
 import {AwsTranscribe} from "infrastructure/AwsTranscribe";
 import {AwsStepFunctions} from "infrastructure/AwsStepFunctions";
+import {VoiceStore} from "domain/VoiceStore";
+import {S3Store} from "infrastructure/S3Store";
 
 export const main = async (event, context, callback) => {
     const s3Key = event.Records[0].s3.object.key;
-    const splitted = s3Key.split('.');
-    if (splitted.length < 4) {
-        callback("Invalid formatted file", null);
-    }
+    const store: VoiceStore = new S3Store({
+        region: process.env.region,
+        voiceBucket: process.env.voiceBucket
+    });
 
-    if (splitted[0] !== 'raw') {
+    const converter: SpeechToTextConverter = new AwsTranscribe({ region: process.env.region }, store);
+    const stateMachine: StateMachine = new AwsStepFunctions({ region: process.env.region });
+
+    const speechEntity = store.resolveFileName(s3Key);
+
+    if (speechEntity.sourceSpeech === null) {
         callback(null, {success: false});
     }
 
-    const converter: SpeechToTextConverter = new AwsTranscribe({ region: process.env.region });
-    const stateMachine: StateMachine = new AwsStepFunctions({ region: process.env.region });
+    await converter.startConversion(speechEntity);
+    await stateMachine.start(speechEntity.id);
 
-    const transcribeRequest = {
-        LanguageCode: splitted[1], //en-US | es-US,
-        Media: {
-            MediaFileUri: "https://s3-" + process.env.region + ".amazonaws.com/" + process.env.voiceBucket + "/" + s3Key
-        },
-        MediaFormat: 'wav',
-        TranscriptionJobName: s3Key[2]
-    };
-
-    const stepFunctionsRequest = {
-        stateMachineArn: process.env.stateMachine,
-        input: JSON.stringify({speechId: s3Key[2]}),
-        name: s3Key[2]
-    };
-
-    // start transcription
-    // start step function
+    callback(null, {success: true});
 };

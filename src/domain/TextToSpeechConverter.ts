@@ -1,5 +1,5 @@
-import {SpeechEntity, VoiceEntity} from "./SpeechEntity";
+import {SpeechEntity} from "./SpeechEntity";
 
 export interface TextToSpeechConverter {
-    convert(entity: SpeechEntity): Promise<VoiceEntity>
+    convert(entity: SpeechEntity): Promise<Buffer>
 }

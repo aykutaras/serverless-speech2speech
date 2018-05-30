@@ -1,9 +1,7 @@
 import * as AWS from "aws-sdk"
-import * as uuid from "uuid/v4"
 
 import {SpeechRepository} from "domain/SpeechRepository";
 import {SpeechEntity} from "domain/SpeechEntity";
-import {AttributeMap} from "aws-sdk/clients/dynamodb";
 
 export class DynamoDBRepository implements SpeechRepository {
     private readonly client: AWS.DynamoDB.DocumentClient;
@@ -36,19 +34,28 @@ export class DynamoDBRepository implements SpeechRepository {
     }
 
     async create(entity: SpeechEntity): Promise<SpeechEntity> {
-        entity.id = uuid();
-
         const params = {
             TableName: this.tableName,
             Item: {
                 "id": entity.id,
-                "vocalist": entity.vocalist,
-                "speechText": entity.speechText,
-                "speechUrl": null
+                "sourceSpeech": {
+                    "language": entity.sourceSpeech.language,
+                    "text": entity.sourceSpeech.text,
+                    "voice": {
+                        "vocalist": entity.sourceSpeech.voice.vocalist,
+                        "voiceFileName": entity.sourceSpeech.voice.voiceFileName
+                    }
+                },
+                "translatedSpeech": {
+                    "language": entity.translatedSpeech.language,
+                    "text": entity.translatedSpeech.text,
+                    "voice": {
+                        "vocalist": entity.translatedSpeech.voice.vocalist,
+                        "voiceFileName": entity.translatedSpeech.voice.voiceFileName
+                    }
+                }
             }
         };
-
-        console.log(params);
 
         await this.client.put(params).promise();
         return entity;
@@ -62,25 +69,16 @@ export class DynamoDBRepository implements SpeechRepository {
             },
             UpdateExpression: "set #u = :u",
             ExpressionAttributeNames: {
-                "#u": "speechUrl"
+                "#u": "sourceSpeech.text"
             },
             ExpressionAttributeValues: {
-                ":u": entity.speechUrl
+                ":u": entity.sourceSpeech.text
             },
             ReturnValues: "UPDATED_NEW"
         };
 
         const updateResponse = await this.client.update(params).promise();
-        entity.speechUrl = updateResponse.Attributes.speechUrl;
+        entity.sourceSpeech.text = updateResponse.Attributes.sourceSpeech.text;
         return entity;
-    }
-
-    private static mapEntity(attributeMap: AttributeMap): SpeechEntity {
-        return {
-            id: <string>attributeMap.id,
-            vocalist: <string>attributeMap.vocalist,
-            speechText: <string>attributeMap.speechText,
-            speechUrl: <string>attributeMap.speechUrl
-        };
     }
 }
