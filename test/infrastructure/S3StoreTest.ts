@@ -9,7 +9,7 @@ describe("S3Store", function() {
     this.timeout(20000);
     const store = new S3Store({
         region: "eu-west-1",
-        voiceBucket: "hasan-bucket"
+        voiceBucket: "test-speech-bucket"
     });
 
     it("should upload voice buffer as an mp3 file", async () => {

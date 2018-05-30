@@ -28,6 +28,9 @@ export class AwsTranscribe implements SpeechToTextConverter {
                 throw new Error(response.TranscriptionJob.FailureReason);
             }
             case "COMPLETED": {
+                // TODO:
+                // Change here completely store download not working
+                // Use node-fetch to download json file
                 return response.TranscriptionJob.Transcript.TranscriptFileUri;
             }
         }

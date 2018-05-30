@@ -22,8 +22,7 @@ export const main = async (event, context, callback) => {
         const transcript = await converter.checkConversion(speechId);
         if (transcript !== null) {
             const speechEntity = await repository.get(speechId);
-            const transcriptStream = await store.download(transcript);
-            speechEntity.sourceSpeech.text = transcriptStream.toString();
+            speechEntity.sourceSpeech.text = transcript;
             await repository.update(speechEntity);
 
             callback(null, {status: "SUCCESS"});
