@@ -14,6 +14,15 @@ provider:
   region: eu-west-1
   memorySize: 128
   iamRoleStatements:
+# TODO circular reference exception
+#    - Effect: "Allow"
+#      Action: lambda:InvokeFunction
+#      Resource:
+#        Fn::Join:
+#          - ""
+#          -
+#            - "arn:aws:lambda:*:*:function:"
+#            - Ref: ConvertSpeechLambdaFunction
     - Effect: "Allow"
       Action:
         - "s3:PutObject"
@@ -23,7 +32,7 @@ provider:
           - ""
           -
             - "arn:aws:s3:::"
-            - Ref : VoiceBucket
+            - Ref: VoiceBucket
             - "/*"
     - Effect: "Allow"
       Action:
@@ -56,6 +65,16 @@ provider:
       Action:
         - "translate:TranslateText"
       Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "transcribe:StartTranscriptionJob"
+        - "transcribe:GetTranscriptionJob"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "states:StartExecution"
+        - "states:StopExecution"
+      Resource: "arn:aws:states:*:*:*"
 
 functions:
   getSpeech:
@@ -101,7 +120,7 @@ functions:
       region: ${self:provider.region}
   newSpeech:
     handler: src/handlers/commands/NewSpeechHandler.main
-    description: Adds new speeches to dynamodb
+    description: Store voice speeches to s3
     events:
       - http:
           method: post
@@ -116,30 +135,45 @@ functions:
             headers:
               Content-Type: "'application/json'"
     environment:
+      voiceBucket:
+        Ref: VoiceBucket
+      tableName:
+        Ref: SpeechTable
+      region: ${self:provider.region}
+  transcribeSpeech:
+    handler: src/handlers/commands/TranscribeSpeechHandler.main
+    description: Start transcription job for stored speech voices
+# TODO could not give bucket name with a reference
+#    events:
+#      - s3:
+#          bucket:
+#            Ref: VoiceBucket
+#          event: s3:ObjectCreated:*
+    environment:
+      voiceBucket:
+        Ref: VoiceBucket
+      region: ${self:provider.region}
+  transcribeChecker:
+    handler: src/handlers/commands/TranscribeCheckerHandler.main
+    description: Check transcription job to completed and update database
+    environment:
+      voiceBucket:
+        Ref: VoiceBucket
+      tableName:
+        Ref: SpeechTable
+      region: ${self:provider.region}
+  convertSpeech:
+    handler: src/handlers/commands/ConvertSpeechHandler.main
+    description: Converts speech to mp3 voices through Polly
+    environment:
+      voiceBucket:
+        Ref: VoiceBucket
       tableName:
         Ref: SpeechTable
       region: ${self:provider.region}
   translateSpeech:
     handler: src/handlers/commands/TranslateSpeechHandler.main
-    description: Translate speeches
-    events:
-      - http:
-          method: post
-          path: /translate
-          integration: lambda
-          cors: true
-          request:
-            passThrough: WHEN_NO_MATCH
-            template:
-              application/json: ''
-          response:
-            headers:
-              Content-Type: "'application/json'"
-    environment:
-      region: ${self:provider.region}
-  convertSpeech:
-    handler: src/handlers/commands/ConvertSpeechHandler.main
-    description: Converts speech to mp3 voices through Polly
+    description: Translates speech through Translate
     events:
       - stream:
           type: dynamodb
@@ -149,8 +183,6 @@ functions:
               - SpeechTable
               - StreamArn
     environment:
-      tableName:
-        Ref: SpeechTable
       voiceBucket:
         Ref: VoiceBucket
       region: ${self:provider.region}
