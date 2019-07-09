@@ -2,6 +2,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "sourceMap": true,
+    "target": "es2017",
+    "moduleResolution": "node",
     "lib": [
       "esnext"
     ],
@@ -11,7 +13,6 @@
       "*": ["src/*"]
     },
     "outDir": ".build/",
-//    "types": ["reflect-metadata"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
@@ -19,3 +20,4 @@
     "./src/**/*"
   ]
 }
+

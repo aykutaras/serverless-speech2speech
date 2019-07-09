@@ -4,6 +4,7 @@ const nodeExternals = require("webpack-node-externals");
 
 module.exports = {
     entry: slsw.lib.entries,
+    mode: slsw.lib.webpack.isLocal ? 'development' : 'production',
     devtool: 'source-map',
     resolve: {
         extensions: [
@@ -21,14 +22,13 @@ module.exports = {
     },
     output: {
         libraryTarget: 'commonjs',
-        path: path.join(__dirname, '.webpack'),
+        path: path.join(__dirname, '.build'),
         filename: '[name].js',
     },
     target: 'node',
     externals: [nodeExternals()],
     module: {
-        loaders: [
-            { test: /\.ts(x?)$/, loader: 'ts-loader' },
-        ],
+        rules: [{ test: /\.ts(x?)$/, loader: 'ts-loader' }]
     },
 };
+

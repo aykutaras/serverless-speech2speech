@@ -216,7 +216,10 @@ resources:
         AccessControl: PublicRead
 
 custom:
-  webpackIncludeModules: true
+  webpack:
+    includeModules:
+      forceExclude:
+        - aws-sdk
   dynamodb:
     start:
       port: 9000
