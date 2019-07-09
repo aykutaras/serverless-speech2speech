@@ -17,7 +17,6 @@
     "chai": "^4.1.2",
     "mocha": "^5.0.1",
     "serverless": "^1.27.3",
-    "serverless-dynamodb-local": "^0.2.30",
     "serverless-offline": "^5.0.0",
     "serverless-plugin-tracing": "^2.0.0",
     "serverless-webpack": "^5.2.0",
