@@ -12,6 +12,8 @@
     "@types/node": "^12.12.0",
     "aws-sdk": "^2.644.0",
     "chai": "^4.2.0",
+    "lodash": ">=4.17.12",
+    "minimist": ">=1.2.3",
     "mocha": "^7.1.0",
     "serverless": "^1.67.0",
     "serverless-offline": "^6.0.0",
@@ -20,9 +22,7 @@
     "ts-loader": "^6.2.0",
     "typescript": "^3.8.0",
     "webpack": "^4.42.0",
-    "webpack-node-externals": "^1.7.0",
-    "minimist": ">=1.2.2",
-    "lodash": ">=4.17.12"
+    "webpack-node-externals": "^1.7.0"
   },
   "dependencies": {
     "aws-xray-sdk-core": "^2.5.0",
