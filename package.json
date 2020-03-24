@@ -20,7 +20,8 @@
     "ts-loader": "^6.2.0",
     "typescript": "^3.8.0",
     "webpack": "^4.42.0",
-    "webpack-node-externals": "^1.7.0"
+    "webpack-node-externals": "^1.7.0",
+    "minimist": ">=1.2.2"
   },
   "dependencies": {
     "aws-xray-sdk-core": "^2.5.0",
